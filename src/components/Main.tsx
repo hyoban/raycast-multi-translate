@@ -1,15 +1,13 @@
+import { Action, ActionPanel, Icon, List, Toast, showToast } from '@raycast/api'
 import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
-import { Action, ActionPanel, Icon, List, Toast, showToast } from '@raycast/api'
 import useSWR from 'swr'
 import type { LanguageCode } from '../data/languages'
 import { getLanguageName, languages, languagesByCode } from '../data/languages'
-import { translateAll } from '../logic/translator'
+import { webDictionaries } from '../data/web-dictionaries'
 import { targetLanguages, useSystemSelection } from '../logic/hooks'
 import { unicodeTransform } from '../logic/text'
-import { spellcheck } from '../logic/spellcheck'
-import { webDictionaries } from '../data/web-dictionaries'
-import { SpellcheckItem } from './SpellcheckItem'
+import { translateAll } from '../logic/translator'
 import { TranslateDetail } from './TranslateDetail'
 
 const langReg = new RegExp(`[>:/](${Object.keys(languagesByCode).join('|')})$`, 'i')
@@ -51,11 +49,6 @@ export function Main(): ReactElement {
       message: error.toString(),
     })
   }
-
-  const { data: correctedText } = useSWR(
-    sourceText || null,
-    args => spellcheck(args),
-  )
 
   // reset selection when results change
   useEffect(() => {
@@ -124,7 +117,6 @@ export function Main(): ReactElement {
         </ActionPanel>
       }
     >
-      {correctedText ? <SpellcheckItem text={sourceText} corrected={correctedText} /> : null}
       {results?.map((item, index) => {
         const webDicts = webDictionaries
           .filter(dic => (dic.sentence || !item.translated.includes(' '))
