@@ -66,7 +66,7 @@ export function Main(): ReactElement {
 
   return (
     <List
-      searchBarPlaceholder={systemSelection.slice(0, 40) || 'Enter text to translate'}
+      searchBarPlaceholder={systemSelection.split('\n').at(0)?.slice(0, 40) || 'Enter text to translate'}
       searchBarAccessory={
         <List.Dropdown
           tooltip='Source language'
