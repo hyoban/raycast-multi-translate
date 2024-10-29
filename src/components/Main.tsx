@@ -18,7 +18,7 @@ export function Main(): ReactElement {
   const langs = targetLanguages
   const [isShowingDetail, setIsShowingDetail] = useState(true)
   const [input, setInput] = useState('')
-  const [systemSelection] = useSystemSelection()
+  const systemSelection = useSystemSelection()
   const [selectedId, setSelectedId] = useState<string>()
 
   const [userLangFrom, setUserLangFrom] = useState<LanguageCode>()

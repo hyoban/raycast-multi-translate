@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getPreferenceValues, getSelectedText } from '@raycast/api'
+import useSWR from 'swr'
 import type { LanguageCode } from '../data/languages'
 
 // preferences won't change at runtime.
@@ -16,25 +17,14 @@ export const targetLanguages = (() => {
 })()
 
 export function useSystemSelection() {
-  const [text, setText] = useState('')
-  useEffect(() => {
-    if (!preferences.getSystemSelection)
-      return
-
-    let isCancelled = false
-    getSelectedText()
-      .then((cbText) => {
-        if (!isCancelled)
-          setText((cbText ?? '').trim())
-      })
-      .catch(() => {})
-
-    return () => {
-      isCancelled = true
-    }
-  }, [preferences.getSystemSelection])
-
-  return [text, setText] as const
+  return useSWR(
+    'system-selection',
+    async () => {
+      if (!preferences.getSystemSelection)
+        return ''
+      return getSelectedText().then(text => text.trim())
+    },
+  ).data ?? ''
 }
 
 export function useDebouncedValue<T>(value: T, delay: number) {
