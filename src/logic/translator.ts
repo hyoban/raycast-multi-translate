@@ -69,6 +69,8 @@ export async function translate(text: string, from: LanguageCode, to: LanguageCo
 }
 
 export async function translateAll(text: string, from: LanguageCode = 'auto', languages: LanguageCode[]) {
+  console.log({ text, from, languages })
+
   if (!text)
     return []
 

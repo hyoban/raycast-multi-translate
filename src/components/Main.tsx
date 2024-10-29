@@ -1,11 +1,11 @@
 import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
 import { Action, ActionPanel, Icon, List, Toast, showToast } from '@raycast/api'
-import { usePromise } from '@raycast/utils'
+import useSWR from 'swr'
 import type { LanguageCode } from '../data/languages'
 import { getLanguageName, languages, languagesByCode } from '../data/languages'
 import { translateAll } from '../logic/translator'
-import { targetLanguages, useDebouncedValue, useSystemSelection } from '../logic/hooks'
+import { targetLanguages, useSystemSelection } from '../logic/hooks'
 import { unicodeTransform } from '../logic/text'
 import { spellcheck } from '../logic/spellcheck'
 import { webDictionaries } from '../data/web-dictionaries'
@@ -39,22 +39,23 @@ export function Main(): ReactElement {
 
   const langFrom = userLangFrom ?? inlineLangFrom
 
-  const debouncedText = useDebouncedValue(sourceText, 500)
+  const { data: results, isLoading, error } = useSWR(
+    sourceText ? [sourceText, langFrom, langs] : null,
+    args => translateAll(...args),
+  )
 
-  const { data: results, isLoading } = usePromise(
-    translateAll,
-    [debouncedText, langFrom, langs],
-    {
-      onError(error) {
-        showToast({
-          style: Toast.Style.Failure,
-          title: 'Could not translate',
-          message: error.toString(),
-        })
-      },
+  if (error) {
+    showToast({
+      style: Toast.Style.Failure,
+      title: 'Could not translate',
+      message: error.toString(),
     })
+  }
 
-  const { data: correctedText } = usePromise(spellcheck, [debouncedText])
+  const { data: correctedText } = useSWR(
+    sourceText || null,
+    args => spellcheck(args),
+  )
 
   // reset selection when results change
   useEffect(() => {
@@ -157,7 +158,7 @@ export function Main(): ReactElement {
                   {
                     webDicts.map((dic, idx) => (
                       <Action.OpenInBrowser
-                        shortcut={idx ? undefined : { modifiers: ['cmd'], key: 'enter' }}
+                        shortcut={idx ? undefined : { modifiers: ['ctrl'], key: 'enter' }}
                         key={dic.title}
                         title={`Open in ${dic.title}`}
                         url={dic.url!}
